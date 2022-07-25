@@ -383,22 +383,26 @@
         
         const chartLabels = [
             {%- for row in dataset.summary.stats['account_coverage'] %}
-                '{{ row['accountId'] }} [{{ row['lwAccount'] }}]'
-                {%- if not loop.last -%}
-                ,
+                {%- if row['total_coverage'] != 'N/A' %}
+                    '{{ row['accountId'] }} [{{ row['lwAccount'] }}]'
+                    {%- if not loop.last -%}
+                    ,
+                    {%- endif %}
                 {%- endif %}
             {%- endfor %}
         ]
 
         const chartData = [
             {%- for row in dataset.summary.stats['account_coverage'] %}
-                {%- if row['total_coverage'] > 15 -%}
-                {{ row['total_coverage'] }}
-                {%- else %}
-                15.1
-                {%- endif %}
-                {%- if not loop.last -%}
-                ,
+                {%- if row['total_coverage'] != 'N/A' %}
+                    {%- if row['total_coverage'] > 15 -%}
+                    {{ row['total_coverage'] }}
+                    {%- else %}
+                    15.1
+                    {%- endif %}
+                    {%- if not loop.last -%}
+                    ,
+                    {%- endif %}
                 {%- endif %}
             {%- endfor %}
         ]

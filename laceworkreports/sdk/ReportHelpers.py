@@ -395,7 +395,7 @@ class ReportHelper:
                             '{lwAccount}' AS lwAccount,
                             m.TAGS:InstanceId::String AS instanceId,
                             m.TAGS:Account::String AS accountId,
-                            m.TAGS:ProjectId::String AS projectId,
+                            UPPER(m.TAGS:ProjectId::String) AS projectId,
                             m.TAGS:VmProvider::String AS VmProvider
                         }}
                     }}
@@ -460,10 +460,10 @@ class ReportHelper:
                     gcp_accounts.append(m["PROJECTID"])
             elif (
                 m["PROJECTID"] is not None
-                and m["VMPROVIDER"] == "Azure"
+                and m["VMPROVIDER"] == "Microsoft.Compute"
                 and m["PROJECTID"] not in azure_accounts
             ):
-                accountId = f"az::{m['PROJECTID']}"
+                accountId = f"az::{m['PROJECTID'].upper()}"
                 data = {
                     "lwAccount": lwAccount,
                     "accountId": accountId,
@@ -823,10 +823,10 @@ class ReportHelper:
             csp, tenantId, subscriptionId = cloud_account_details
             if subscriptionId != "*":
                 project_number = subscriptionId
-                filter = f"m.TAGS:ProjectId::String = '{subscriptionId}' AND m.TAGS:VmProvider::String IN ('Azure')"
+                filter = f"UPPER(m.TAGS:ProjectId::String) = '{subscriptionId.upper()}' AND m.TAGS:VmProvider::String IN ('Microsoft.Compute')"
             else:
                 filter = None
-            accountId = f"'az:' || '{tenantId}' || ':' ||  m.TAGS:ProjectId::String AS accountId,"
+            accountId = f"'az:' || '{tenantId}' || ':' ||  UPPER(m.TAGS:ProjectId::String) AS accountId,"
 
         lql_query = f"""
                     Custom_HE_Machine_1 {{
@@ -1033,12 +1033,10 @@ class ReportHelper:
         elif csp == "az":
             csp, tenantId, subscriptionId = cloud_account_details
             if subscriptionId != "*":
-                filter = f"m.TAGS:ProjectId::String = '{subscriptionId}' AND m.TAGS:VmProvider::String IN ('Azure')"
+                filter = f"UPPER(m.TAGS:ProjectId::String) = '{subscriptionId.upper()}' AND m.TAGS:VmProvider::String IN ('Microsoft.Compute')"
             else:
                 filter = None
-            accountId = (
-                f"'az:' || '{tenantId}' || ':' ||  '{subscriptionId}' AS accountId,"
-            )
+            accountId = f"'az:' || '{tenantId}' || ':' ||  '{subscriptionId.upper()}' AS accountId,"
 
         lql_query = f"""
                     Custom_HE_CONTAINERS_1 {{
@@ -1185,12 +1183,10 @@ class ReportHelper:
         elif csp == "az":
             csp, tenantId, subscriptionId = cloud_account_details
             if subscriptionId != "*":
-                filter = f"m.TAGS:ProjectId::String = '{subscriptionId}' AND m.TAGS:VmProvider::String IN ('Azure')"
+                filter = f"UPPER(m.TAGS:ProjectId::String) = '{subscriptionId.upper()}' AND m.TAGS:VmProvider::String IN ('Microsoft.Compute')"
             else:
                 filter = None
-            accountId = (
-                f"'az:' || '{tenantId}' || ':' ||  '{subscriptionId}' AS accountId,"
-            )
+            accountId = f"'az:' || '{tenantId}' || ':' ||  '{subscriptionId.upper()}' AS accountId,"
 
         lql_query = f"""
                     Custom_HE_CONTAINERS_1 {{
@@ -1243,7 +1239,7 @@ class ReportHelper:
 
         return result
 
-    # cloud accounts with ec2 or gce instances
+    # cloud accounts with ec2, gce, azure instances
     def get_discovered_cloud_accounts(
         self,
         client: LaceworkClient,
@@ -1353,6 +1349,40 @@ class ReportHelper:
             if not ignore_errors:
                 raise e
 
+        # get distinct cloud accounts with azure vms
+        lql_query = f"""
+                        AZURE {{
+                            source {{
+                                LW_CFG_AZURE_COMPUTE_VIRTUALMACHINES m
+                            }}
+                            return distinct {{ 
+                                '{lwAccount}' AS lwAccount,
+                                'az:' || TENANT_ID::String || ':' || UPPER(SUBSCRIPTION_ID::String) AS accountId
+                            }}
+                        }}
+                        """
+        # sync results
+        try:
+            result = ExportHandler(
+                format=format_type,
+                results=QueryHandler(
+                    client=client,
+                    start_time=start_time,
+                    end_time=end_time,
+                    type=common.ObjectTypes.Queries.value,
+                    object=common.QueriesTypes.Execute.value,
+                    lql_query=lql_query,
+                ).execute(),
+                db_connection=db_connection,
+                db_table=db_table,
+            ).export()
+            results = results + result
+        except laceworksdk.exceptions.ApiError as e:
+            logging.error(f"Lacework api returned: {e}")
+
+            if not ignore_errors:
+                raise e
+
         return results
 
     # cloud accounts with agents deployed
@@ -1381,8 +1411,8 @@ class ReportHelper:
                 filter = "m.TAGS:VmProvider::String IN ('GCE')"
                 accountId = "'gcp:' ||  m.TAGS:ProjectId::String AS accountId"
             elif csp == "az":
-                filter = "m.TAGS:VmProvider::String IN ('Azure')"
-                accountId = "'az:' ||  m.TAGS:ProjectId::String AS accountId"
+                filter = "m.TAGS:VmProvider::String IN ('Microsoft.Compute')"
+                accountId = "'az:' ||  UPPER(m.TAGS:ProjectId::String) AS accountId"
 
             lql_query = f"""
                         Custom_HE_Machine_1 {{
@@ -1604,9 +1634,34 @@ class ReportHelper:
                                 }}
                             }}
                             """
-        # elif csp == "az":
-        #     csp, tenantId, subscriptionId = cloud_account_details
-        #     filter = f"m.TAGS:ProjectId::String = '{subscriptionId}' AND m.TAGS:VmProvider::String IN ('Azure')"
+        elif csp == "az":
+            csp, tenantId, subscriptionId = cloud_account_details
+            filter = f"UPPER(m.SUBSCRIPTION_ID::String) = '{subscriptionId.upper()}' AND m.TENANT_ID::String = '{tenantId}'"
+            lql_query = f"""
+                            AZURE {{
+                                source {{
+                                    LW_CFG_AZURE_COMPUTE_VIRTUALMACHINES m
+                                }}
+                                filter {{
+                                    {filter}
+                                }}
+                                return distinct {{ 
+                                    '{lwAccount}' AS lwAccount,
+                                    'az:' || TENANT_ID::String || ':' || UPPER(SUBSCRIPTION_ID::String) AS accountId,
+                                    m.RESOURCE_CONFIG:vmId::string AS instanceId,
+                                    m.RESOURCE_CONFIG:extended.instanceView.computerName::string AS name,
+                                    SUBSTRING(
+                                        m.RESOURCE_CONFIG:extended.instanceView.powerState.code,
+                                        CHAR_INDEX(
+                                            '/', 
+                                            m.RESOURCE_CONFIG:extended.instanceView.powerState.code
+                                        )+1,
+                                        LENGTH(m.RESOURCE_CONFIG:extended.instanceView.powerState.code)
+                                    )AS state,
+                                    m.RESOURCE_CONFIG:RESOURCE_TAGS::string AS tags
+                                }}
+                            }}
+                            """
 
         # pull a list of ec2 instance details for the current account
         else:
@@ -1815,6 +1870,48 @@ class ReportHelper:
                                                 }}
                                             }}
                                             """
+                        elif csp == "az":
+                            # split out NOT IN query
+                            chunk_list = [
+                                instance_ids[i : i + 5000]
+                                for i in range(0, len(instance_ids), 5000)
+                            ]
+                            machine_filter_chunk = []
+                            for chunk in chunk_list:
+                                machine_filter_chunk.append(
+                                    "m.RESOURCE_CONFIG:vmId::String NOT IN ('{}')".format(
+                                        "','".join(chunk)
+                                    )
+                                )
+                            machine_filter = "({})".format(
+                                " AND ".join(machine_filter_chunk)
+                            )
+
+                            csp, tenantId, subscriptionId = cloud_account_details
+                            filter = f"UPPER(m.SUBSCRIPTION_ID::String) = '{subscriptionId.upper()}' AND m.TENANT_ID::String = '{tenantId}'"
+                            lql_query = f"""
+                                            AZURE {{
+                                                source {{
+                                                    LW_CFG_AZURE_COMPUTE_VIRTUALMACHINES m
+                                                }}
+                                                filter {{ {filter} AND {machine_filter} }}
+                                                return distinct {{ 
+                                                    '{lwAccount}' AS lwAccount,
+                                                    'az:' || TENANT_ID::String || ':' || UPPER(SUBSCRIPTION_ID::String) AS accountId,
+                                                    m.RESOURCE_CONFIG:vmId::string AS instanceId,
+                                                    m.RESOURCE_CONFIG:extended.instanceView.computerName::string AS name,
+                                                    SUBSTRING(
+                                                        m.RESOURCE_CONFIG:extended.instanceView.powerState.code,
+                                                        CHAR_INDEX(
+                                                            '/', 
+                                                            m.RESOURCE_CONFIG:extended.instanceView.powerState.code
+                                                        )+1,
+                                                        LENGTH(m.RESOURCE_CONFIG:extended.instanceView.powerState.code)
+                                                    )AS state,
+                                                    m.RESOURCE_CONFIG:RESOURCE_TAGS::string AS tags
+                                                }}
+                                            }}
+                                            """
 
                         result = ExportHandler(
                             format=format_type,
@@ -1979,7 +2076,7 @@ class ReportHelper:
                     {
                         "field": "machineTags.VmProvider",
                         "expression": "in",
-                        "values": ["Azure"],
+                        "values": ["Microsoft.Compute"],
                     }
                 )
                 filters.append(
@@ -2227,8 +2324,11 @@ AgentQueries = {
                             LWACCOUNT AS lwAccount,
                             ACCOUNTID AS accountId,
                             SUM(HAS_AGENT) AS total_installed,
-                            COUNT(*) AS total,
-                            SUM(HAS_AGENT)*100/COUNT(*) AS total_coverage
+                            (sum(case when INSTANCEID is null then 0 else 1 end)) AS total,
+                            CASE
+                                WHEN (sum(case when INSTANCEID is null then 0 else 1 end)) = 0 THEN 'N/A'
+                                ELSE SUM(HAS_AGENT)*100/(sum(case when INSTANCEID is null then 0 else 1 end))
+                            END AS total_coverage
                         FROM 
                             (
                                 SELECT 
@@ -2242,6 +2342,18 @@ AgentQueries = {
                                     (SELECT LWTOKENSHORT FROM machines AS m WHERE m.TAG_INSTANCEID = dm.INSTANCEID) AS lwTokenShort
                                 FROM 
                                     :db_table AS dm
+                                UNION
+                                SELECT
+                                    LWACCOUNT AS lwAccount,
+                                    ACCOUNTID AS accountId,
+                                    NULL AS InstanceId,
+                                    NULL AS name,
+                                    'stopped' AS state,
+                                    NULL AS tags,
+                                    0 AS has_agent,
+                                    NULL AS lwTokenShort
+                                FROM
+                                    cloud_accounts
                             ) AS t
                         WHERE
                             STATE = 'running' OR STATE='stopped'
@@ -2257,9 +2369,12 @@ AgentQueries = {
                             'Any' AS lwAccount,
                             COUNT(DISTINCT ACCOUNTID) AS total_accounts,
                             SUM(HAS_AGENT) AS total_installed,
-                            COUNT(*)-SUM(HAS_AGENT) AS total_not_installed,
-                            COUNT(*) AS total,
-                            SUM(HAS_AGENT)*100/COUNT(*) AS total_coverage
+                            (sum(case when INSTANCEID is null then 0 else 1 end))-SUM(HAS_AGENT) AS total_not_installed,
+                            (sum(case when INSTANCEID is null then 0 else 1 end)) AS total,
+                            CASE
+                                WHEN (sum(case when INSTANCEID is null then 0 else 1 end)) = 0 THEN 'N/A'
+                                ELSE SUM(HAS_AGENT)*100/(sum(case when INSTANCEID is null then 0 else 1 end))
+                            END AS total_coverage
                         FROM 
                             (
                                 SELECT 
@@ -2273,6 +2388,18 @@ AgentQueries = {
                                     (SELECT LWTOKENSHORT FROM machines AS m WHERE m.TAG_INSTANCEID = dm.INSTANCEID) AS lwTokenShort
                                 FROM 
                                     :db_table AS dm
+                                UNION
+                                SELECT
+                                    LWACCOUNT AS lwAccount,
+                                    ACCOUNTID AS accountId,
+                                    NULL AS InstanceId,
+                                    NULL AS name,
+                                    'stopped' AS state,
+                                    NULL AS tags,
+                                    0 AS has_agent,
+                                    NULL AS lwTokenShort
+                                FROM
+                                    cloud_accounts
                             ) AS t 
                         WHERE
                             STATE = 'running' OR STATE='stopped'
@@ -2282,9 +2409,12 @@ AgentQueries = {
                             LWACCOUNT AS lwAccount,
                             COUNT(DISTINCT ACCOUNTID) AS total_accounts,
                             SUM(HAS_AGENT) AS total_installed,
-                            COUNT(*)-SUM(HAS_AGENT) AS total_not_installed,
-                            COUNT(*) AS total,
-                            SUM(HAS_AGENT)*100/COUNT(*) AS total_coverage
+                            (sum(case when INSTANCEID is null then 0 else 1 end))-SUM(HAS_AGENT) AS total_not_installed,
+                            (sum(case when INSTANCEID is null then 0 else 1 end)) AS total,
+                            CASE
+                                WHEN (sum(case when INSTANCEID is null then 0 else 1 end)) = 0 THEN 'N/A'
+                                ELSE SUM(HAS_AGENT)*100/(sum(case when INSTANCEID is null then 0 else 1 end))
+                            END AS total_coverage
                         FROM 
                             (
                                 SELECT 
@@ -2298,6 +2428,18 @@ AgentQueries = {
                                     (SELECT LWTOKENSHORT FROM machines AS m WHERE m.TAG_INSTANCEID = dm.INSTANCEID) AS lwTokenShort
                                 FROM 
                                     :db_table AS dm
+                                UNION
+                                SELECT
+                                    LWACCOUNT AS lwAccount,
+                                    ACCOUNTID AS accountId,
+                                    NULL AS InstanceId,
+                                    NULL AS name,
+                                    'stopped' AS state,
+                                    NULL AS tags,
+                                    0 AS has_agent,
+                                    NULL AS lwTokenShort
+                                FROM
+                                    cloud_accounts
                             ) AS t  
                          WHERE
                             STATE = 'running' OR STATE='stopped'
@@ -2305,23 +2447,10 @@ AgentQueries = {
                             LWACCOUNT
                         """,
     "lwaccount": """
-                    SELECT 
-                        DISTINCT 
-                        LWACCOUNT AS lwAccount
+                    SELECT  
+                        DISTINCT LWACCOUNT as lwAccount
                     FROM
-                        (
-                            SELECT 
-                                LWACCOUNT AS lwAccount,
-                                ACCOUNTID AS accountId,
-                                INSTANCEID AS InstanceId,
-                                NAME AS name,
-                                LOWER(STATE) AS state,
-                                TAGS AS tags,
-                                (SELECT COUNT(*) FROM machines AS m WHERE m.TAG_INSTANCEID = dm.INSTANCEID) AS has_agent,
-                                (SELECT LWTOKENSHORT FROM machines AS m WHERE m.TAG_INSTANCEID = dm.INSTANCEID) AS lwTokenShort
-                            FROM 
-                                :db_table AS dm
-                        ) AS t 
+                        cloud_accounts
                     """,
 }
 
@@ -2571,8 +2700,8 @@ ComplianceQueries = {
                                 lwAccount
                             """,
     "lwaccount": """
-                    SELECT 
-                        DISTINCT lwaccount
+                    SELECT  
+                        DISTINCT LWACCOUNT as lwAccount
                     FROM
                         :db_table
                     """,
@@ -3286,8 +3415,8 @@ VulnerabilityQueries = {
                                 lwAccount
                             """,
     "lwaccount": """
-                    SELECT 
-                        DISTINCT lwaccount
+                    SELECT  
+                        DISTINCT LWACCOUNT as lwAccount
                     FROM
                         :db_table
                     """,

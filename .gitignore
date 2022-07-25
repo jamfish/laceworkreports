@@ -620,3 +620,5 @@ MigrationBackup/
 /*.html
 /*.db*
 /reports/*
+/.trunk
+/.trunk/*

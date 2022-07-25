@@ -131,6 +131,9 @@ def html(
         ).export()
 
         logging.info(
+            f"Found {len(cloud_accounts)} cloud accounts from integrations list: {cloud_accounts}"
+        )
+        logging.info(
             f"Discovered {len(discovered_cloud_accounts)} cloud accounts with agents deployed: {discovered_cloud_accounts}"
         )
 
