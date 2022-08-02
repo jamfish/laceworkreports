@@ -1112,6 +1112,9 @@ class ReportHelper:
                     start_time=start_time,
                     end_time=end_time,
                     object=common.ObjectTypes.ContainerRegistries.value,
+                    filters=[
+                        {"field": "state", "expression": "not_rlike", "value": "NULL"}
+                    ],
                     type=None,
                 ).execute(),
                 db_table=db_table,

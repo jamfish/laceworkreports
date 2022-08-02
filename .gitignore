@@ -622,3 +622,4 @@ MigrationBackup/
 /reports/*
 /.trunk
 /.trunk/*
+terraform.tfstate

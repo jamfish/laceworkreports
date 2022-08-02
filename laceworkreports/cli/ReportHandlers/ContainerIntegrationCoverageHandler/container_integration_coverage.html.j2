@@ -688,7 +688,13 @@
         });
 
         // stats summary data {{ dataset.name }}
-        {%- set fields = dataset.summary.stats[ stats_accumulator.stats_table_name ][0].keys() %}
+        {%- if dataset.summary.stats[ stats_accumulator.stats_table_name ]|length > 0 %}
+        {%- 
+            set fields = dataset.summary.stats[ stats_accumulator.stats_table_name ][0].keys() 
+        %}
+        {%- else %}
+        {%- set fields = [] %}
+        {%- endif %}
 
         var $table = $('#table_summary_{{ dataset.name }}')
         var total = 0
@@ -822,7 +828,13 @@
         {%- endif %}
 
         // stats integration data {{ dataset.name }}
-        {%- set fields = dataset.summary.stats[ integration_accumulator.integration_table_name ][0].keys() %}
+        {%- if dataset.summary.stats[ integration_accumulator.integration_table_name ]|length > 0 %}
+        {%- 
+            set fields = dataset.summary.stats[ integration_accumulator.integration_table_name ][0].keys() 
+        %}
+        {%- else %}
+        {%- set fields = [] %}
+        {%- endif %}
 
         var $table = $('#table_integration_{{ dataset.name }}')
         var total = 0
