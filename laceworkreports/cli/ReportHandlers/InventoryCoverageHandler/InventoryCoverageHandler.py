@@ -2,8 +2,8 @@
 Report Handler
 """
 
-import typing
-from typing import List, Optional
+from typing import Optional
+from typing import List as typingList
 
 import logging
 from datetime import datetime, timedelta
@@ -53,7 +53,7 @@ def html(
         help="Path to jinja2 template. Results will be passed as 'dataset' variable.",
         envvar=common.LACEWORK_REPORTS_TEMPLATE_PATH,
     ),
-    tag_column: Optional[list[str]] = typer.Option(
+    tag_column: Optional[typingList[str]] = typer.Option(
         None,
         help="Entity tag keys to use as table column values. This option can be specified multiple times.",
     ),
@@ -349,7 +349,7 @@ def csv_handler(
         help="Path to exported result",
         envvar=common.LACEWORK_REPORTS_FILE_PATH,
     ),
-    tag_column: Optional[list[str]] = typer.Option(
+    tag_column: Optional[typingList[str]] = typer.Option(
         None,
         help="Entity tag keys to use as table column values. This option can be specified multiple times.",
     ),

@@ -352,7 +352,7 @@
             {%- endif %}
             filterControl: false,
 
-            //data: table_data_{{ dataset.name }},
+            data: table_data_{{ dataset.name }},
             columns: table_cols_{{ dataset.name }},
 
             virtualScroll: false,
@@ -362,17 +362,9 @@
             paginationVAlign: "bottom",
             showFooter: false,
             sortable: true
-        }).bootstrapTable("showLoading").bootstrapTable("load", loadData(table_data_{{ dataset.name }})).bootstrapTable("hideLoading");
+        });
 
-        {%- if dataset.summary.rows > 25000 %}
-        // download link creation for large datasets
-        {%- set csv = base64.b64encode(pandas.DataFrame(dataset.report).to_csv(index=False).encode()).decode() %}
-        let csvContent = atob("{{ csv }}");
-        var blob = new Blob([csvContent], {type: "data:application/octet-stream;base64"});
-        var url  = window.URL.createObjectURL(blob);
-        var dlnk = document.getElementById("download_file");
-        dlnk.href = url;
-        {%- endif %}
+        
     </script>
     {%- endfor %}
 </body>
