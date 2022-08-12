@@ -232,7 +232,7 @@ def html(
         tag_columns = []
         for tag in tags:
             tag_columns.append(
-                f"""
+                """
                 (SELECT 
                     json_extract(value, '$.Value')
                 FROM 
@@ -500,7 +500,7 @@ def csv_handler(
         tag_columns = []
         for tag in tags:
             tag_columns.append(
-                f"""
+                """
                 (SELECT 
                     json_extract(value, '$.Value')
                 FROM 
