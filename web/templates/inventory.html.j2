@@ -1,0 +1,114 @@
+{% extends 'layout.html.j2' %}
+
+{% block content %}
+    <article class="card">
+        {%- set stats_accumulator = namespace(stats_table_name='account_coverage') %}
+        {%- for dataset in datasets %}
+        <content class="card-body">
+            <h5 class="card-title">{{ dataset.summary.reportTitle }}</h5>
+            <div class="row">
+                <div class="col-12">
+                    <div class="row card" style="padding: 10px">
+                        <h5 class="card-title">Executive Summary</h5>
+                        <div class="col-12">
+                            {{ dataset.summary.description }}
+                        </div>
+                    </div>
+                </div>
+                <!-- data table -->
+                <div class="col-12">
+                    <div class="toolbar_{{ dataset.name }}">
+                        <strong>Details</strong> {{ dataset.summary.rows }} {%- if dataset.summary.rows > 25000 %}(details dataset truncated to 25000, <a download="download.csv" id="download_file">download full results</a>){%- endif %}
+                    </div>
+                    <table class="data-table" id="table_{{ dataset.name }}"></table>
+                </div>
+            </div>
+        </content>
+        {%- endfor %}
+    </article>
+{% endblock %}
+
+{% block script %}
+    {%- for dataset in datasets %}
+    <script type="text/javascript">
+        function loadingTemplate(message) {
+            if (type === 'fa') {
+            return '<i class="fa fa-spinner fa-spin fa-fw fa-2x"></i>'
+            }
+            if (type === 'pl') {
+            return '<div class="ph-item"><div class="ph-picture"></div></div>'
+            }
+        }
+        function loadData(data){
+            return data
+        }
+
+        // data table {{ dataset.name }}
+        {%- set fields = dataset.report[0].keys() %}
+
+        var $table = $('#table_{{ dataset.name }}')
+        var total = 0
+        
+        const table_cols_{{ dataset.name }} = [
+            {%- for field in fields %}
+                {
+                    field: '{{ field }}',
+                    title: '{{ field }}',
+                    sortable: true
+                }
+                {%- if not loop.last -%}
+                ,
+                {%- endif %}
+            {%- endfor %}    
+            ]
+
+        const table_data_{{ dataset.name }} = [
+            {%- for row in dataset.report %}
+                {%- if loop.index < 25000 %}
+                    {
+                        "id": {{ loop.index }},
+                        {%- for field in fields %}
+                            "{{ field }}": "{{ row[field] }}"
+                            {%- if not loop.last -%}
+                            ,
+                            {%- endif %}
+                        {%- endfor %}
+                    }
+                    {%- if not loop.last -%}
+                    ,
+                    {%- endif %}
+                {%- endif %}
+            {%- endfor %}    
+        ]
+        
+        $table.bootstrapTable({
+            toolbar: ".toolbar_{{ dataset.name }}",
+
+            search: true,
+            showColumns: true,
+            showFullscreen: true,
+            
+            {%- if dataset.summary.rows < 25000 %}
+            // enable export
+            showExport: true,
+            exportTypes: ['json', 'xml', 'csv', 'txt', 'sql', 'excel', 'pdf'],
+            exportDataType: 'all',
+            {%- endif %}
+            filterControl: false,
+
+            data: table_data_{{ dataset.name }},
+            columns: table_cols_{{ dataset.name }},
+
+            virtualScroll: false,
+            showExtendedPagination: true,
+            pagination: true,
+            showPaginationSwitch: true,
+            paginationVAlign: "bottom",
+            showFooter: false,
+            sortable: true
+        });
+
+        
+    </script>
+    {%- endfor %}
+{% endblock %}

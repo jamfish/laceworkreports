@@ -168,7 +168,7 @@ class Config:
         self.filters = None
         self.returns = None
         self.lql_query = None
-        self.dataset = ComplianceEvaluationsTypes.AwsCompliance
+        self.dataset = ComplianceEvaluationsTypes.AwsCompliance.value
         self.sample = False
 
         # export context
