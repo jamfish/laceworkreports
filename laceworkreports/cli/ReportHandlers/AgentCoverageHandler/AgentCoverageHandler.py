@@ -238,9 +238,11 @@ def html(
                 FROM 
                     json_each( TAGS, '$' ) 
                 where
-                    json_valid(value) AND json_extract(value, '$.Key') = '{tag}'
-                LIMIT 1) AS '{tag}'
-                """
+                    json_valid(value) AND json_extract(value, '$.Key') = ':tag'
+                LIMIT 1) AS ':tag'
+                """.replace(
+                    ":tag", tag
+                )
             )
 
         tag_column_query = f"{','.join(tag_columns)},"
@@ -504,9 +506,11 @@ def csv_handler(
                 FROM 
                     json_each( TAGS, '$' ) 
                 where
-                    json_valid(value) AND json_extract(value, '$.Key') = '{tag}'
-                LIMIT 1) AS '{tag}'
-                """
+                    json_valid(value) AND json_extract(value, '$.Key') = ':tag'
+                LIMIT 1) AS ':tag'
+                """.replace(
+                    ":tag", tag
+                )
             )
 
         tag_column_query = f"{','.join(tag_columns)},"

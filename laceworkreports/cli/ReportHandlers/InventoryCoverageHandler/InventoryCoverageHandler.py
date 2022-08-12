@@ -267,15 +267,17 @@ def html(
         tag_columns = []
         for tag in tags:
             tag_columns.append(
-                f"""
+                """
                 (SELECT
                     json_extract(value, '$.Value')
                 FROM
                     json_each(resourceTags, '$' )
                 where
-                    json_valid(value) AND json_extract(value, '$.Key') = '{tag}'
-                LIMIT 1) AS '{tag}'
-                """
+                    json_valid(value) AND json_extract(value, '$.Key') = ':tag'
+                LIMIT 1) AS ':tag'
+                """.replace(
+                    ":tag", tag
+                )
             )
 
         tag_column_query = f"{','.join(tag_columns)},"
@@ -561,15 +563,17 @@ def csv_handler(
         tag_columns = []
         for tag in tags:
             tag_columns.append(
-                f"""
+                """
                 (SELECT
                     json_extract(value, '$.Value')
                 FROM
                     json_each(resourceTags, '$' )
                 where
-                    json_valid(value) AND json_extract(value, '$.Key') = '{tag}'
-                LIMIT 1) AS '{tag}'
-                """
+                    json_valid(value) AND json_extract(value, '$.Key') = ':tag'
+                LIMIT 1) AS ':tag'
+                """.replace(
+                    ":tag", tag
+                )
             )
 
         tag_column_query = f"{','.join(tag_columns)},"
