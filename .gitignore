@@ -623,3 +623,4 @@ MigrationBackup/
 /.trunk
 /.trunk/*
 terraform.tfstate
+web/database/*.db

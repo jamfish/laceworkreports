@@ -593,9 +593,14 @@ class ReportHelper:
                 sql_query = queries[query]
                 if db_table is not None:
                     sql_query = sql_query.replace(":db_table", db_table)
+                else:
+                    sql_query = sql_query.replace(":db_table", "")
+
                 if custom_columns is not None:
                     sql_query = sql_query.replace(":custom_columns", custom_columns)
-                print(sql_query)
+                else:
+                    sql_query = sql_query.replace(":custom_columns", "")
+
                 df = pd.read_sql_query(
                     sql=sql_query,
                     con=con,
@@ -683,8 +688,13 @@ class ReportHelper:
             sql_query = queries[query]
             if db_table is not None:
                 sql_query = sql_query.replace(":db_table", db_table)
+            else:
+                sql_query = sql_query.replace(":db_table", "")
+
             if custom_columns is not None:
                 sql_query = sql_query.replace(":custom_columns", custom_columns)
+            else:
+                sql_query = sql_query.replace(":custom_columns", "")
 
             df = pd.read_sql_query(
                 sql=sql_query,

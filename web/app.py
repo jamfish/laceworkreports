@@ -15,7 +15,7 @@ from sqlalchemy_utils.functions import create_database, database_exists
 logging.basicConfig(level=logging.INFO)
 
 # sqlite database
-db_path = Path("./databse/database.db")
+db_path = Path("./database/database.db")
 db_connection = f"sqlite:///{db_path.absolute()}?check_same_thread=False"
 
 # jinja templates
@@ -44,8 +44,13 @@ def sqlite_queries(
         sql_query = queries[query]
         if db_table is not None:
             sql_query = sql_query.replace(":db_table", db_table)
+        else:
+            sql_query = sql_query.replace(":db_table", "")
+
         if custom_columns is not None:
             sql_query = sql_query.replace(":custom_columns", custom_columns)
+        else:
+            sql_query = sql_query.replace(":custom_columns", "")
 
         df = pd.read_sql_query(
             sql=sql_query,
@@ -58,14 +63,34 @@ def sqlite_queries(
 
 
 def get_inventory():
-    # sqlite_queries(
-    #     queries=InventoryQueries,
-    #     db_table="inventory",
-    #     custom_columns=tag_column_query,
-    #     db_connection=db_connection,
-    # )
-
-    results = [{"id": 1, "test": "value"}]
+    results = sqlite_queries(
+        queries={
+            "report": """
+                        SELECT 
+                            csp,
+                            json_extract(cloudDetails,'$.accountID') AS accountID,
+                            json_extract(cloudDetails,'$.accountAlias') AS acountAlias,
+                            startTime,
+                            endTime,
+                            :custom_columns
+                            resourceId,
+                            resourceRegion,
+                            resourceType,
+                            resourceTags,
+                            service,
+                            status,
+                            resourceConfig
+                        FROM
+                            :db_table AS dm
+                        LIMIT 10000
+                        """,
+        },
+        db_table="inventory",
+        custom_columns=None,
+        db_connection=db_connection,
+    )
+    logging.info(results)
+    # results = [{"id": 1, "test": "value"}]
 
     return [
         {
@@ -73,9 +98,9 @@ def get_inventory():
             "summary": {
                 "reportTitle": "Inventory Coverage",
                 "description": "The Inventory Coverage Report displays a list of all Lacework Inventory.",
-                "rows": 1,
+                "rows": len(results["report"]),
             },
-            "report": results,
+            "report": results["report"],
         }
     ]
 
