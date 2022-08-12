@@ -586,7 +586,7 @@ class QueryHandler:
 
         # handle compliance_evalutations dataset field
         if self.dataset is not None:
-            q["dataset"] = self.dataset.value
+            q["dataset"] = self.dataset
 
         # create reference to search object
         if common.ObjectTypes.has_value(self.object) and (

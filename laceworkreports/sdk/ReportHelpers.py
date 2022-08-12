@@ -25,6 +25,16 @@ from laceworkreports.sdk.DataHandlers import (
 )
 
 
+class InventoryReportType(Enum):
+    AWS = "AwsCompliance"
+    GCP = "GcpCompliance"
+    AZURE = "AzureCompliance"
+
+    @classmethod
+    def has_value(cls, value):
+        return value in cls._value2member_map_
+
+
 class ComplianceReportCSP(Enum):
     AWS = "AwsCfg"
     GCP = "GcpCfg"
@@ -482,13 +492,13 @@ class ReportHelper:
     def sqlite_sync_report(
         self,
         report: typing.Any,
-        table_name: typing.AnyStr,
+        db_table: typing.AnyStr,
         queries: typing_dict[typing.Any, typing.Any] = {},
         db_path_override: typing.Any = None,
+        custom_columns: typing.Any = None,
     ) -> typing_dict[typing.Any, typing.Any]:
         logging.info("Syncing data to cache for stats generation...")
         with tempfile.TemporaryDirectory() as tmpdirname:
-            db_table = table_name
             df = pd.DataFrame(report)
 
             # allow override of db path
@@ -580,8 +590,14 @@ class ReportHelper:
             results = {}
             for query in queries.keys():
                 logging.debug("Executing query")
+                sql_query = queries[query]
+                if db_table is not None:
+                    sql_query = sql_query.replace(":db_table", db_table)
+                if custom_columns is not None:
+                    sql_query = sql_query.replace(":custom_columns", custom_columns)
+                print(sql_query)
                 df = pd.read_sql_query(
-                    sql=queries[query].replace(":db_table", table_name),
+                    sql=sql_query,
                     con=con,
                 )
                 results[query] = df.to_dict(orient="records")
@@ -654,6 +670,7 @@ class ReportHelper:
         queries: typing_dict[typing.Any, typing.Any],
         db_table: typing.Any,
         db_connection: typing.Any,
+        custom_columns: typing.Any = None,
     ) -> typing_dict[typing.Any, typing.Any]:
 
         logging.info("Generating query results")
@@ -663,8 +680,14 @@ class ReportHelper:
         results = {}
         for query in queries.keys():
             logging.debug(f"Executing query: {query}")
+            sql_query = queries[query]
+            if db_table is not None:
+                sql_query = sql_query.replace(":db_table", db_table)
+            if custom_columns is not None:
+                sql_query = sql_query.replace(":custom_columns", custom_columns)
+
             df = pd.read_sql_query(
-                sql=queries[query].replace(":db_table", db_table),
+                sql=sql_query,
                 con=conn,
             )
             results[query] = df.to_dict(orient="records")
@@ -840,7 +863,10 @@ class ReportHelper:
                             '{lwAccount}' AS lwAccount,
                             {accountId}
                             m.TAGS:Hostname::String AS tag_hostname,
-                            m.TAGS:InstanceId::String AS tag_instanceId,
+                            CASE
+                                WHEN m.TAGS:InstanceId IS NULL THEN m.TAGS:Hostname::String
+                                ELSE m.TAGS:InstanceId::String
+                            END AS tag_instanceId,
                             '{account_number}' AS tag_accountId,
                             '{project_number}' AS tag_projectId,
                             m.TAGS:VmProvider::String AS tag_VmProvider,
@@ -904,6 +930,10 @@ class ReportHelper:
 
                         instance_ids = []
                         for machine_id in result["report"]:
+                            if machine_id["TAG_INSTANCEID"] is None:
+                                print(machine_id)
+                                exit(1)
+
                             instance_ids.append(machine_id["TAG_INSTANCEID"])
 
                         # split out NOT IN query
@@ -2304,6 +2334,68 @@ class ReportHelper:
 
         return result
 
+    def get_account_inventory(
+        self,
+        client: LaceworkClient,
+        lwAccount: typing.Any,
+        report_type: InventoryReportType,
+        start_time: datetime = (datetime.utcnow() - timedelta(hours=25)),
+        end_time: datetime = (datetime.utcnow()),
+        ignore_errors: bool = True,
+        use_sqlite: bool = False,
+        db_table: typing.Any = None,
+        db_connection: typing.Any = None,
+    ) -> typing_list[typing.Any]:
+        result = []
+        if use_sqlite:
+            format_type = DataHandlerTypes.SQLITE
+        else:
+            format_type = DataHandlerTypes.DICT
+
+        try:
+            result = ExportHandler(
+                format=format_type,
+                results=QueryHandler(
+                    client=client,
+                    start_time=start_time,
+                    end_time=end_time,
+                    object=common.ObjectTypes.Inventory.value,
+                    dataset=report_type.value,
+                ).execute(),
+                db_table=db_table,
+                db_connection=db_connection,
+            ).export()
+            result = result + result
+
+        except laceworksdk.exceptions.ApiError as e:
+            logging.error(f"Lacework api returned: {e}")
+
+            if not ignore_errors:
+                raise e
+
+        return result
+
+
+InventoryQueries = {
+    "report": """
+                SELECT 
+                    csp,
+                    json_extract(cloudDetails,'$.accountID') AS accountID,
+                    json_extract(cloudDetails,'$.accountAlias') AS acountAlias,
+                    startTime,
+                    endTime,
+                    :custom_columns
+                    resourceId,
+                    resourceRegion,
+                    resourceType,
+                    resourceTags,
+                    service,
+                    status,
+                    resourceConfig
+                FROM
+                    :db_table AS dm
+                """,
+}
 
 AgentQueries = {
     "report": """
@@ -2313,6 +2405,7 @@ AgentQueries = {
                     INSTANCEID AS InstanceId,
                     NAME AS name,
                     LOWER(STATE) AS state,
+                    :custom_columns
                     TAGS AS tags,
                     (SELECT COUNT(*) FROM machines AS m WHERE m.TAG_INSTANCEID = dm.INSTANCEID) AS has_agent,
                     (SELECT LWTOKENSHORT FROM machines AS m WHERE m.TAG_INSTANCEID = dm.INSTANCEID) AS lwTokenShort

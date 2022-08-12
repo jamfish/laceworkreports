@@ -54,6 +54,8 @@ class ObjectTypes(Enum):
     Vulnerabilities = "vulnerabilities"
     Configs = "configs"
     Alerts = "alerts"
+    Inventory = "inventory"
+
     # add support for legacy v2 which now support paging
     AgentAccessTokens = "agent_access_tokens"  # v2 legacy
     AlertChannels = "alert_channels"  # v2 legacy

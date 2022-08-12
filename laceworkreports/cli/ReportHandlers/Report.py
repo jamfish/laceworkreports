@@ -6,6 +6,7 @@ from .AgentCoverageHandler import AgentCoverageHandler
 from .ComplianceCoverageHandler import ComplianceCoverageHandler
 from .ContainerIntegrationCoverageHandler import ContainerIntegrationCoverageHandler
 from .ContainerVulnerabilityCoverageHandler import ContainerVulnerabilityCoverageHandler
+from .InventoryCoverageHandler import InventoryCoverageHandler
 from .VpcChartHandler import VpcChartHandler
 from .VulnerabilityCoverageHandler import VulnerabilityCoverageHandler
 
@@ -32,6 +33,10 @@ commands = [
     {
         "command_name": "container-integration-coverage",
         "command_type": ContainerIntegrationCoverageHandler.app,
+    },
+    {
+        "command_name": "inventory-coverage",
+        "command_type": InventoryCoverageHandler.app,
     },
 ]
 

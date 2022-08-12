@@ -33,7 +33,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
 
-    <link href="https://unpkg.com/placeholder-loading/dist/css/placeholder-loading.min.css" rel="stylesheet">
+     <link href="https://unpkg.com/placeholder-loading/dist/css/placeholder-loading.min.css" rel="stylesheet">
     <link href="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table.min.css" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/tableexport.jquery.plugin@1.10.21/tableExport.min.js"></script>
@@ -42,7 +42,7 @@
     
     <script src="https://unpkg.com/bootstrap-table@1.20.2/dist/bootstrap-table.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.20.2/dist/extensions/export/bootstrap-table-export.min.js"></script>
-   
+
     
     <style>
         @page {
@@ -264,106 +264,14 @@
         {%- for dataset in datasets %}
           <content class="card-body">
             <h5 class="card-title">{{ dataset.summary.reportTitle }}</h5>
-            <div class="row card">
-                <div id="legend-container" class="col-12"></div>
-            </div>
-            <div class="row">
-                <div class="col-4">
-                    <div class="row">
-                        <strong>Coverage Score</strong>
-                    </div>
-                    <div id="total_coverage" class="col-xs-1 center-block text-center text-nowrap" style="font-size: 110pt;height:500px;"></div>
-                </div>
-                <div class="col-8">
-                <div class="row">
-                    <div class="col-12 center-block text-center text-nowrap">
-                        <div id="filtergroup" class="btn-group" role="group" aria-label="Basic example">
-                            <input type="radio" class="btn-check" name="btnradio" id="gt75" autocomplete="off" onclick="filterChart.call(this,75,true)">
-                            <label class="btn btn-outline-primary" for="gt75">&gt; 75</label>
-
-                            <input type="radio" class="btn-check" name="btnradio" id="gt50" autocomplete="off" onclick="filterChart.call(this,50,true)">
-                            <label class="btn btn-outline-primary" for="gt50">&gt; 50</label>
-
-                            <input type="radio" class="btn-check" name="btnradio" id="gt25" autocomplete="off" onclick="filterChart.call(this,25,true)">
-                            <label class="btn btn-outline-primary" for="gt25">&gt; 25</label>
-
-                            <div class="btn-group" role="group">
-                                <button id="btnGroupDrop1" type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <div id="lwAccount"></div>
-                                </button>
-                                <ul id="account_list" class="dropdown-menu" aria-labelledby="btnGroupDrop1"></ul>
-                            </div>
-
-                            <input type="radio" class="btn-check" name="btnradio" id="lt75" autocomplete="off" onclick="filterChart.call(this,75,false)">
-                            <label class="btn btn-outline-primary" for="lt75">&lt; 75</label>
-
-                            <input type="radio" class="btn-check" name="btnradio" id="lt50" autocomplete="off" onclick="filterChart.call(this,50,false)">
-                            <label class="btn btn-outline-primary" for="lt50">&lt; 50</label>
-
-                            <input type="radio" class="btn-check" name="btnradio" id="lt25" autocomplete="off" onclick="filterChart.call(this,25,false)">
-                            <label class="btn btn-outline-primary" for="lt25">&lt; 25</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="trend-chart">
-                    <canvas id="chart_{{ dataset.name }}"></canvas>
-                </div>
-            </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="row card">
-                        <div class="row">
-                            <div class="col-4 compliance-severity">TOTAL ACCOUNTS</div>
-                            <div class="col-4 compliance-severity">TOTAL ASSESSMENTS</div>
-                            <div class="col-4 compliance-severity">TOTAL VIOLATIONS</div>
-                            
-                        </div>
-                        <div class="row">
-                            <div id="total_accounts" class="col-4 compliance-severity-count"></div>
-                            <div id="total_assessed_resource_count" class="col-4 compliance-severity-count"></div>
-                            <div id="total_violation_count" class="col-4 compliance-severity-count"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12">
-                    <div class="row card">
-                        <div class="row">
-                            <div class="col-1 compliance-severity">&nbsp;</div>
-                            <div class="col-2 compliance-severity">TOTAL CRITICAL</div>
-                            <div class="col-2 compliance-severity">TOTAL HIGH</div>
-                            <div class="col-2 compliance-severity">TOTAL MEDIUM</div>
-                            <div class="col-2 compliance-severity">TOTAL LOW</div>
-                            <div class="col-2 compliance-severity">TOTAL INFO</div>
-                            <div class="col-1 compliance-severity">&nbsp;</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-1 compliance-severity">&nbsp;</div>
-                            <div id="critical" class="col-2 compliance-severity-count"></div>
-                            <div id="high" class="col-2 compliance-severity-count"></div>
-                            <div id="medium" class="col-2 compliance-severity-count"></div>
-                            <div id="low" class="col-2 compliance-severity-count"></div>
-                            <div id="info" class="col-2 compliance-severity-count"></div>
-                            <div class="col-1 compliance-severity">&nbsp;</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div class="row">
                 <div class="col-12">
                     <div class="row card" style="padding: 10px">
                         <h5 class="card-title">Executive Summary</h5>
                         <div class="col-12">
-                            The Account Compliance Report shows a list of all accounts and their compliance against the measured framework. Ideally all resources would be fully aligned with the compliance framework. Exception should be created and documented for all resources which will should not be measured as part of compliance demonstration.
+                            The Inventory Coverage Report displays a list of all Lacework Inventory.
                         </div>
                     </div>
-                </div>
-                <!-- stats table -->
-                <div class="col-12">
-                    <div class="toolbar_summary_{{ dataset.name }}">
-                        <strong>Summary</strong> {{ dataset.summary.stats[ stats_accumulator.stats_table_name ]|length }}
-                    </div>
-                    <table class="data-table" id="table_summary_{{ dataset.name }}"></table>
                 </div>
                 <!-- data table -->
                 <div class="col-12">
@@ -379,396 +287,17 @@
    </section>
    {%- for dataset in datasets %}
    <script type="text/javascript">
-        // summary info
-        var lwaccount_summary = {{ dataset.summary.stats['lwaccount_summary'] | tojson()  }};
-        var total_summary = {{ dataset.summary.stats['total_summary'] | tojson()  }};
-        lwaccount_summary.unshift(total_summary[0]);
-
-        // initial setting
-        var lwaccount = 'Any';
-        $('#total_coverage').html(lwaccount_summary[0]['total_coverage'] + "%");
-        $('#total_assessed_resource_count').html(lwaccount_summary[0]['total_assessed_resource_count']);
-        $('#total_violation_count').html(lwaccount_summary[0]['total_violation_count']);
-        $('#total_accounts').html(lwaccount_summary[0]['total_accounts']);
-        $('#critical').html(lwaccount_summary[0]['critical']);
-        $('#high').html(lwaccount_summary[0]['high']);
-        $('#medium').html(lwaccount_summary[0]['medium']);
-        $('#low').html(lwaccount_summary[0]['low']);
-        $('#info').html(lwaccount_summary[0]['info']);
-        $('#lwAccount').html(lwaccount_summary[0]['lwAccount']);
-
-        lwaccount_summary.forEach(account => {
-            $('#account_list').append(
-                "<li><a id=\"account_" + account['lwAccount'] + "\" class=\"dropdown-item\" onclick=\"filterChartAccount.call(this,'" + account['lwAccount'] + "')\">" + account['lwAccount'] + "</a></li>"
-            );
-        });
-        
-        // chart {{ dataset.name }}
-        const ctx_{{ dataset.name }} = document.getElementById('chart_{{ dataset.name }}');
-        ctx_{{ dataset.name }}.getContext("2d").canvas.width = 200;
-        ctx_{{ dataset.name }}.getContext("2d").canvas.height = 110;
-        
-        const chartLabels = [
-            {%- for row in dataset.summary.stats['account_coverage'] %}
-                '{{ row['accountId'] }} [{{ row['lwAccount'] }}]'
-                {%- if not loop.last -%}
-                ,
-                {%- endif %}
-            {%- endfor %}
-        ]
-
-        const chartData = [
-            {%- for row in dataset.summary.stats['account_coverage'] %}
-                {%- if row['total_coverage'] > 15 -%}
-                {{ row['total_coverage'] }}
-                {%- else %}
-                15.1
-                {%- endif %}
-                {%- if not loop.last -%}
-                ,
-                {%- endif %}
-            {%- endfor %}
-        ]
-        i = 0;
-        var graphColors = [];
-        var graphOutlines = [];
-        var hoverColor = [];
-        while (i <= chartData.length) {
-            var randomR = Math.floor((Math.random() * 130) + 100);
-            var randomG = Math.floor((Math.random() * 130) + 100);
-            var randomB = Math.floor((Math.random() * 130) + 100);
-        
-            var graphBackground = "rgb(" 
-                    + randomR + ", " 
-                    + randomG + ", " 
-                    + randomB + ", "
-                    + 0.75 + ")";
-            graphColors.push(graphBackground);
-            
-            var graphOutline = "rgb(" 
-                    + (randomR - 80) + ", " 
-                    + (randomG - 80) + ", " 
-                    + (randomB - 80) + ")";
-            graphOutlines.push(graphOutline);
-            
-            var hoverColors = "rgb(" 
-                    + (randomR + 25) + ", " 
-                    + (randomG + 25) + ", " 
-                    + (randomB + 25) + ")";
-            hoverColor.push(hoverColors);
-            
-            i++;
-        };
-
-        const data = {
-            labels: chartLabels,
-            datasets: [{
-                data: chartData,
-                backgroundColor: graphColors,
-                hoverOffset: 4
-            }]
-        };
-
-        const getOrCreateLegendList = (chart, id) => {
-            const legendContainer = document.getElementById(id);
-            let listContainer = legendContainer.querySelector('ul');
-
-            if (!listContainer) {
-                listContainer = document.createElement('ul');
-                listContainer.style.display = 'flex';
-                listContainer.style.flexWrap = 'wrap';
-                listContainer.style.margin = 0;
-                listContainer.style.padding = 0;
-                listContainer.style.textAlign = 'center';
-                listContainer.style.height = '110px';
-                listContainer.style.overflowY = 'scroll';
-
-                legendContainer.appendChild(listContainer);
+        function loadingTemplate(message) {
+            if (type === 'fa') {
+            return '<i class="fa fa-spinner fa-spin fa-fw fa-2x"></i>'
             }
-
-            return listContainer;
-        };
-
-        var filtered = false;
-        var filteredId = "";
-
-        function filterChart(threshold,greaterThan){
-            chart = chart_{{ dataset.name }};
-            // if we are filtered we need to remove the filter
-            if(filtered && this.id == filteredId){
-                // reset the button filter
-                $('.btn-group').find('label').removeClass('active').end().find('[type="radio"]').prop('checked', false);
-                filteredId = "";
-            }else if(filtered){
-                // reset the chart filter
-                const items = chart.options.plugins.legend.labels.generateLabels(chart);
-                items.forEach((item, index) => {
-                    if(!chart.getDataVisibility(item.index)){
-                        chart.toggleDataVisibility(item.index)
-                    }
-                });
-                chart.update();
-                filtered = false;
+            if (type === 'pl') {
+            return '<div class="ph-item"><div class="ph-picture"></div></div>'
             }
-            
-            filteredId = this.id;
-
-            const items = chart.options.plugins.legend.labels.generateLabels(chart);
-            items.forEach((item, index) => {
-                if(filtered){
-                    if(!chart.getDataVisibility(item.index)){
-                        chart.toggleDataVisibility(item.index)
-                    }
-                }else{
-                    if((chart.data.datasets[0].data[index]>threshold && greaterThan) || (chart.data.datasets[0].data[index]<threshold && !greaterThan)){
-                        if(!chart.getDataVisibility(item.index)){
-                            chart.toggleDataVisibility(item.index)
-                        }
-                    }else{
-                        if(chart.getDataVisibility(item.index)){
-                            chart.toggleDataVisibility(item.index)
-                        }
-                    }
-                }
-            });
-            filtered = filtered?false:true;
-            chart.update();
         }
-
-        function filterChartAccount(account, reset=false){
-            var $table_summary = $('#table_summary_{{ dataset.name }}');
-            var $table = $('#table_{{ dataset.name }}');
-            var chart = chart_{{ dataset.name }};
-            // if we are filtered we need to remove the filter
-            $('.btn-group').find('label').removeClass('active').end().find('[type="radio"]').prop('checked', false);
-            if((filtered && this.id == filteredId) || reset){
-                // reset the button filter
-                filteredId = "";
-                account = "Any";
-            }else if(filtered){
-                // reset the chart filter
-                const items = chart.options.plugins.legend.labels.generateLabels(chart);
-                items.forEach((item, index) => {
-                    if(!chart.getDataVisibility(item.index)){
-                        chart.toggleDataVisibility(item.index)
-                    }
-                });
-                chart.update();
-                filtered = false;
-            }
-            
-            filteredId = this.id;
-
-            const items = chart.options.plugins.legend.labels.generateLabels(chart);
-            var avg = [];
-            items.forEach((item, index) => {
-                if(filtered || account == 'Any'){
-                    // reset visibility if we were previous filtered
-                    if(!chart.getDataVisibility(item.index)){
-                        chart.toggleDataVisibility(item.index)
-                    }
-                    
-                }else{
-                    // for each matching filter ensure visbility enable
-                    lwaccount = chart.data.labels[index].split(" ").slice(-1)[0]
-                    if((lwaccount == "[" + account + "]")){
-                        if(!chart.getDataVisibility(item.index)){
-                            chart.toggleDataVisibility(item.index)
-                        }
-                    }else{
-                        // hide all visibility non-matching
-                        if(chart.getDataVisibility(item.index)){
-                            chart.toggleDataVisibility(item.index)
-                        }
-                    }
-                }
-            });
-            
-            filtered = filtered?false:true;
-            
-            // apply filter to the bootstrap table
-            if(account == 'Any'){
-                $table_summary.bootstrapTable('filterBy', {});
-                $table.bootstrapTable('filterBy', {});
-            }else{
-                $table_summary.bootstrapTable('filterBy', {
-                    lwAccount: [account]
-                });
-                $table.bootstrapTable('filterBy', {
-                    lwAccount: [account]
-                });
-            }
-
-            account_info = lwaccount_summary.find((o) => { return o['lwAccount'] === account })
-            $('#total_coverage').html(account_info['total_coverage']+ "%") 
-            $("#lwAccount").html(account_info['lwAccount']);
-            $('#total_coverage').html(account_info['total_coverage'] + "%")
-            $('#total_assessed_resource_count').html(account_info['total_assessed_resource_count'])
-            $('#total_violation_count').html(account_info['total_violation_count'])
-            $('#total_accounts').html(account_info['total_accounts'])
-            $('#critical').html(account_info['critical'])
-            $('#high').html(account_info['high'])
-            $('#medium').html(account_info['medium'])
-            $('#low').html(account_info['low'])
-            $('#info').html(account_info['info'])
-            chart.update();
+        function loadData(data){
+            return data
         }
-
-        const htmlLegendPlugin = {
-            id: 'htmlLegend',
-            afterUpdate(chart, args, options) {
-                const ul = getOrCreateLegendList(chart, options.containerID);
-
-                // Remove old legend items
-                while (ul.firstChild) {
-                ul.firstChild.remove();
-                }
-
-                // Reuse the built-in legendItems generator
-                const items = chart.options.plugins.legend.labels.generateLabels(chart);
-
-                items.forEach(item => {
-                const li = document.createElement('li');
-                li.style.alignItems = 'center';
-                li.style.cursor = 'pointer';
-                li.style.display = 'flex';
-                li.style.flexDirection = 'row';
-                li.style.marginLeft = '10px';
-
-                li.onclick = () => {
-                    const {type} = chart.config;
-                    if (type === 'pie' || type === 'doughnut' || type === 'polarArea') {
-                        // Pie and doughnut charts only have a single dataset and visibility is per item
-                        chart.toggleDataVisibility(item.index);
-                    } else {
-                        chart.setDatasetVisibility(item.datasetIndex, !chart.isDatasetVisible(item.datasetIndex));
-                    }
-                    chart.update();
-                };
-
-                // Color box
-                const boxSpan = document.createElement('span');
-                boxSpan.style.background = item.fillStyle;
-                boxSpan.style.borderColor = item.strokeStyle;
-                boxSpan.style.borderWidth = item.lineWidth + 'px';
-                boxSpan.style.display = 'inline-block';
-                boxSpan.style.height = '20px';
-                boxSpan.style.marginRight = '10px';
-                boxSpan.style.width = '20px';
-
-                // Text
-                const textContainer = document.createElement('p');
-                textContainer.style.color = item.fontColor;
-                textContainer.style.margin = 0;
-                textContainer.style.padding = 0;
-                textContainer.style.textDecoration = item.hidden ? 'line-through' : '';
-
-                const text = document.createTextNode(item.text);
-                textContainer.appendChild(text);
-
-                li.appendChild(boxSpan);
-                li.appendChild(textContainer);
-                ul.appendChild(li);
-                });
-            }
-        };
-
-        const chart_{{ dataset.name }} = new Chart(ctx_{{ dataset.name }}, {
-            type: 'polarArea',
-            data: data,
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    htmlLegend: {
-                        // ID of the container to put the legend in
-                        containerID: 'legend-container',
-                    },
-                    legend: {
-                        display: false,
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label + ': ' + context.raw + '%';
-                                if(context.raw == 15.1){
-                                    label = context.label + ': 0%';
-                                }
-                                return label
-                                
-                            }
-                        }
-                    }
-                },
-                legend: {
-                    display: false,
-                },
-                title: {
-                    display: true,
-                    text: '% by Account'
-                }
-            },
-            plugins: [htmlLegendPlugin]
-        });
-
-        // stats summary data {{ dataset.name }}
-        {%- set fields = dataset.summary.stats[ stats_accumulator.stats_table_name ][0].keys() %}
-
-        var $table = $('#table_summary_{{ dataset.name }}')
-        var total = 0
-
-        const table_summary_cols_{{ dataset.name }} = [
-            {%- for field in fields %}
-                 {
-                    field: '{{ field }}',
-                    title: '{{ field }}',
-                    sortable: true
-                }
-                {%- if not loop.last -%}
-                ,
-                {%- endif %}
-            {%- endfor %}    
-            ]
-
-        const table_summary_data_{{ dataset.name }} = [
-            {%- for row in dataset.summary.stats[ stats_accumulator.stats_table_name ] %}
-                {
-                    id: {{ loop.index }},
-                    {%- for field in fields %}
-                        {{ field }}: "{{ row[field] }}"
-                        {%- if not loop.last -%}
-                        ,
-                        {%- endif %}
-                    {%- endfor %}
-                }
-                {%- if not loop.last -%}
-                ,
-                {%- endif %}
-            {%- endfor %}    
-        ]
-
-        $table.bootstrapTable({
-            toolbar: ".toolbar_summary_{{ dataset.name }}",
-
-            search: true,
-            showColumns: true,
-            showFullscreen: true,
-            
-            showExport: true,
-            exportTypes: ['json', 'xml', 'csv', 'txt', 'sql', 'excel', 'pdf'],
-            filterControl: false,
-
-            data: table_summary_data_{{ dataset.name }},
-            columns: table_summary_cols_{{ dataset.name }},
-
-            virtualScroll: false,
-            showExtendedPagination: true,
-            pagination: true,
-            showPaginationSwitch: true,
-            paginationVAlign: "bottom",
-            showFooter: false,
-            sortable: true
-        });
 
         // data table {{ dataset.name }}
         {%- set fields = dataset.report[0].keys() %}
@@ -791,11 +320,11 @@
 
         const table_data_{{ dataset.name }} = [
             {%- for row in dataset.report %}
-                 {%- if loop.index < 25000 %}
+                {%- if loop.index < 25000 %}
                     {
-                        id: {{ loop.index }},
+                        "id": {{ loop.index }},
                         {%- for field in fields %}
-                            {{ field }}: "{{ row[field] }}"
+                            "{{ field }}": "{{ row[field] }}"
                             {%- if not loop.last -%}
                             ,
                             {%- endif %}
@@ -807,7 +336,7 @@
                 {%- endif %}
             {%- endfor %}    
         ]
-
+        
         $table.bootstrapTable({
             toolbar: ".toolbar_{{ dataset.name }}",
 
@@ -823,7 +352,7 @@
             {%- endif %}
             filterControl: false,
 
-            data: table_data_{{ dataset.name }},
+            //data: table_data_{{ dataset.name }},
             columns: table_cols_{{ dataset.name }},
 
             virtualScroll: false,
@@ -833,7 +362,7 @@
             paginationVAlign: "bottom",
             showFooter: false,
             sortable: true
-        });
+        }).bootstrapTable("showLoading").bootstrapTable("load", loadData(table_data_{{ dataset.name }})).bootstrapTable("hideLoading");
 
         {%- if dataset.summary.rows > 25000 %}
         // download link creation for large datasets

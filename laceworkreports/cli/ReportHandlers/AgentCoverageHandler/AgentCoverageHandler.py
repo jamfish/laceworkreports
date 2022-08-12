@@ -2,7 +2,8 @@
 Report Handler
 """
 
-from typing import Optional
+import typing
+from typing import List, Optional
 
 import logging
 from datetime import datetime, timedelta
@@ -44,6 +45,10 @@ def html(
         Path(__file__).resolve().parent.joinpath("agent_coverage.html.j2"),
         help="Path to jinja2 template. Results will be passed as 'dataset' variable.",
         envvar=common.LACEWORK_REPORTS_TEMPLATE_PATH,
+    ),
+    tag_column: Optional[list[str]] = typer.Option(
+        None,
+        help="Entity tag keys to use as table column values. This option can be specified multiple times.",
     ),
 ) -> None:
     """
@@ -215,9 +220,37 @@ def html(
                     f"Skipping disabled or inactive account {lwAccount['accountName']}:{cloud_account['accountId']}"
                 )
 
+    # build custom field extraction
+    tag_column_query = ""
+
+    if tag_column is not None:
+        tags = tag_column
+    else:
+        tags = []
+
+    if len(tags) > 0:
+        tag_columns = []
+        for tag in tags:
+            tag_columns.append(
+                f"""
+                (SELECT 
+                    json_extract(value, '$.Value')
+                FROM 
+                    json_each( TAGS, '$' ) 
+                where
+                    json_valid(value) AND json_extract(value, '$.Key') = '{tag}'
+                LIMIT 1) AS '{tag}'
+                """
+            )
+
+        tag_column_query = f"{','.join(tag_columns)},"
+
     # use sqlite query to generate final result
     results = reportHelper.sqlite_queries(
-        queries=AgentQueries, db_table=db_table, db_connection=db_connection
+        queries=AgentQueries,
+        db_table=db_table,
+        custom_columns=tag_column_query,
+        db_connection=db_connection,
     )
 
     if len(results["report"]) > 0:
@@ -280,6 +313,10 @@ def csv_handler(
         ...,
         help="Path to exported result",
         envvar=common.LACEWORK_REPORTS_FILE_PATH,
+    ),
+    tag_column: Optional[list[str]] = typer.Option(
+        None,
+        help="Entity tag keys to use as table column values. This option can be specified multiple times.",
     ),
 ) -> None:
     """
@@ -449,9 +486,37 @@ def csv_handler(
                     f"Skipping disabled or inactive account {lwAccount['accountName']}:{cloud_account['accountId']}"
                 )
 
+    # build custom field extraction
+    tag_column_query = ""
+
+    if tag_column is not None:
+        tags = tag_column
+    else:
+        tags = []
+
+    if len(tags) > 0:
+        tag_columns = []
+        for tag in tags:
+            tag_columns.append(
+                f"""
+                (SELECT 
+                    json_extract(value, '$.Value')
+                FROM 
+                    json_each( TAGS, '$' ) 
+                where
+                    json_valid(value) AND json_extract(value, '$.Key') = '{tag}'
+                LIMIT 1) AS '{tag}'
+                """
+            )
+
+        tag_column_query = f"{','.join(tag_columns)},"
+
     # use sqlite query to generate final result
     results = reportHelper.sqlite_queries(
-        queries=AgentQueries, db_table=db_table, db_connection=db_connection
+        queries=AgentQueries,
+        db_table=db_table,
+        custom_columns=tag_column_query,
+        db_connection=db_connection,
     )
 
     if len(results["report"]) > 0:
