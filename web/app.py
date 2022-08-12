@@ -1,14 +1,16 @@
-from flask import Flask
+import typing
+from typing import Dict as typing_dict
+
+import logging
+import os
 from pathlib import Path
+
 import jinja2
 import pandas as pd
 import sqlalchemy_utils
+from flask import Flask
 from sqlalchemy import MetaData, Table, create_engine, text
 from sqlalchemy_utils.functions import create_database, database_exists
-from typing import Dict as typing_dict
-import typing
-import os
-import logging
 
 logging.basicConfig(level=logging.INFO)
 
@@ -17,14 +19,13 @@ db_path = Path("./databse/database.db")
 db_connection = f"sqlite:///{db_path.absolute()}?check_same_thread=False"
 
 # jinja templates
-template_folder = Path('./templates')
+template_folder = Path("./templates")
 app = Flask(__name__, template_folder=template_folder.absolute())
-fileloader = jinja2.FileSystemLoader(
-    searchpath=template_folder.absolute()
-)
+fileloader = jinja2.FileSystemLoader(searchpath=template_folder.absolute())
 env = jinja2.Environment(
     loader=fileloader, extensions=["jinja2.ext.do"], autoescape=True
 )
+
 
 def sqlite_queries(
     queries: typing_dict[typing.Any, typing.Any],
@@ -55,6 +56,7 @@ def sqlite_queries(
     logging.info("Queries complete")
     return results
 
+
 def get_inventory():
     sqlite_queries(
         queries=InventoryQueries,
@@ -62,7 +64,7 @@ def get_inventory():
         custom_columns=tag_column_query,
         db_connection=db_connection,
     )
-        
+
     # results = [
     #         {
     #             'id': 1,
@@ -70,29 +72,26 @@ def get_inventory():
     #         }
     #     ]
 
-    return [{
-        'name': 'inventory_coverage',
-        'summary': {
-            'reportTitle': 'Inventory Coverage',
-            'description': 'The Inventory Coverage Report displays a list of all Lacework Inventory.',
-            'rows': 1
-        },
-        'report': results
-    }]
-    
-              
-            
+    return [
+        {
+            "name": "inventory_coverage",
+            "summary": {
+                "reportTitle": "Inventory Coverage",
+                "description": "The Inventory Coverage Report displays a list of all Lacework Inventory.",
+                "rows": 1,
+            },
+            "report": results,
+        }
+    ]
 
 
-@app.route('/', methods=['GET'])
+@app.route("/", methods=["GET"])
 def home():
-    template = env.get_template('inventory.html.j2')
-    
-    return template.render(
-        datasets=get_inventory()
-    )
+    template = env.get_template("inventory.html.j2")
+
+    return template.render(datasets=get_inventory())
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host="0.0.0.0", port=port)
