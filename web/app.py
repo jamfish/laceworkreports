@@ -58,19 +58,14 @@ def sqlite_queries(
 
 
 def get_inventory():
-    sqlite_queries(
-        queries=InventoryQueries,
-        db_table="inventory",
-        custom_columns=tag_column_query,
-        db_connection=db_connection,
-    )
+    # sqlite_queries(
+    #     queries=InventoryQueries,
+    #     db_table="inventory",
+    #     custom_columns=tag_column_query,
+    #     db_connection=db_connection,
+    # )
 
-    # results = [
-    #         {
-    #             'id': 1,
-    #             'test': 'value'
-    #         }
-    #     ]
+    results = [{"id": 1, "test": "value"}]
 
     return [
         {
