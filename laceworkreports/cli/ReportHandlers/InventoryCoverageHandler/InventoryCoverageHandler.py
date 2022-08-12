@@ -2,8 +2,8 @@
 Report Handler
 """
 
-from typing import Optional
 from typing import List as typingList
+from typing import Optional
 
 import logging
 from datetime import datetime, timedelta
