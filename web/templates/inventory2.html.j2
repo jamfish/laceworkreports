@@ -1,0 +1,169 @@
+{% extends 'layout.html.j2' %}
+{% block style %}
+<style>
+        .modal {
+            display:    none;
+            position:   fixed;
+            z-index:    1000;
+            top:        0;
+            left:       0;
+            height:     100%;
+            width:      100%;
+            background: rgba( 255, 255, 255, .8 ) 
+                        url('http://i.stack.imgur.com/FhHRx.gif') 
+                        50% 50% 
+                        no-repeat;
+        }
+
+        /* When the body has the loading class, we turn
+        the scrollbar off with overflow:hidden */
+        body.loading .modal {
+            overflow: hidden;   
+        }
+
+        /* Anytime the body has the loading class, our
+        modal element will be visible */
+        body.loading .modal {
+            display: block;
+        }
+
+        .load {
+            height:     100%;
+            width:      100%;
+            vertical-align: text-top;
+            background: rgba( 1, 1, 1, .1 ) 
+                        url('http://i.stack.imgur.com/FhHRx.gif') 
+                        50% 5% 
+                        no-repeat;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <article class="card">
+        {%- set stats_accumulator = namespace(stats_table_name='account_coverage') %}
+        {%- for dataset in datasets %}
+        <content class="card-body">
+            <h5 class="card-title">{{ dataset.summary.reportTitle }}</h5>
+            <div class="row">
+                <div class="col-12">
+                    <div class="row card" style="padding: 10px">
+                        <h5 class="card-title">Executive Summary</h5>
+                        <div class="col-12">
+                            {{ dataset.summary.description }}
+                        </div>
+                    </div>
+                </div>
+                <!-- data table -->
+                <div class="col-12">
+                    <div class="toolbar_{{ dataset.name }}">
+                        <button id="download_{{ dataset.name }}" type="button" class="btn btn-primary">Download CSV</button>
+                    </div>
+                    <table class="data-table" id="table_{{ dataset.name }}"></table>
+                </div>
+            </div>
+        </content>
+        {%- endfor %}
+    </article>
+{% endblock %}
+
+{% block script %}
+    {%- for dataset in datasets %}
+    <script type="text/javascript">
+        $body = $("body")
+        var type = 'pl'
+        function loadingTemplate_{{ dataset.name }}(message) {
+           return '<div class="align-top load"></div>'
+        }
+
+        // data table {{ dataset.name }}
+        {%- set fields = dataset.report[0].keys() %}
+
+        var $table_{{ dataset.name }} = $('#table_{{ dataset.name }}');
+        var $download_{{ dataset.name }} = $('#download_{{ dataset.name }}');
+        var total = 0
+        
+        const table_cols_{{ dataset.name }} = [
+            {%- for field in fields %}
+                {
+                    field: '{{ field }}',
+                    title: '{{ field }}',
+                    sortable: true,
+                    filterControl: "input"
+                }
+                {%- if not loop.last -%}
+                ,
+                {%- endif %}
+            {%- endfor %}    
+            ]
+        
+        $download_{{ dataset.name }}.click(function() {
+            $body.addClass("loading");
+            var req = new XMLHttpRequest();
+            
+            // setup custom download params
+            var params = params_{{ dataset.name }};
+            params['download'] = "csv";
+            delete params['limit'];
+            delete params['offset'];
+            req.open("POST", "/data/inventory", true);
+            req.responseType = "blob";
+            req.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            req.send(JSON.stringify(params));
+            req.onload = function (event) {
+                var blob = req.response;
+                // var fileName = req.getResponseHeader("fileName") //if you have the fileName header available
+                var link=document.createElement('a');
+                link.href=window.URL.createObjectURL(blob);
+                link.download="test.csv";
+                link.click();
+                $body.removeClass("loading");
+            };
+        });
+
+        var params_{{ dataset.name }} = {}
+
+        function queryParams_{{ dataset.name }}(_params) {
+            params_{{ dataset.name }} = _params;
+            return _params
+        }
+
+        $table_{{ dataset.name }}.bootstrapTable({
+            toolbar: ".toolbar_{{ dataset.name }}",
+
+            search: false,
+            showColumns: true,
+            showFullscreen: true,
+            
+            loadingTemplate: loadingTemplate_{{ dataset.name }},
+
+            queryParams: queryParams_{{ dataset.name }},
+            
+            // enable export
+            showExport: false,
+            exportTypes: ['json', 'xml', 'csv', 'txt', 'sql', 'excel', 'pdf'],
+            exportDataType: 'all',
+            filterControl: true,
+
+            columns: table_cols_{{ dataset.name }},
+
+            method: 'post',
+            
+            url: '/data/inventory',
+            responseHandler: function(data){
+                return { 'total':data[0]['summary']['rows_filtered'],'rows':data[0]['report'] };
+            },
+            sidePagination: 'server',
+            pageSize: 10,
+            virtualScroll: false,
+            showExtendedPagination: true,
+            pagination: true,
+            showPaginationSwitch: true,
+            paginationVAlign: "top",
+            showFooter: false,
+            sortable: true
+        });
+        
+    </script>
+    {%- endfor %}
+    <div class="modal"><!-- Place at bottom of page --></div>
+{% endblock %}

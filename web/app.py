@@ -1,6 +1,7 @@
 import typing
 from typing import Dict as typing_dict
 
+import json
 import logging
 import os
 from pathlib import Path
@@ -8,7 +9,7 @@ from pathlib import Path
 import jinja2
 import pandas as pd
 import sqlalchemy_utils
-from flask import Flask
+from flask import Flask, jsonify, request
 from sqlalchemy import MetaData, Table, create_engine, text
 from sqlalchemy_utils.functions import create_database, database_exists
 
@@ -62,7 +63,30 @@ def sqlite_queries(
     return results
 
 
-def get_inventory():
+def get_inventory(
+    offset=0, limit=10, sort=None, order=None, filter=None, download=None
+):
+    # if we have offset=0 and limit=0 return all (download)
+    if download == "csv":
+        limit_filter = ""
+    else:
+        limit_filter = f"LIMIT {limit} OFFSET {offset}"
+
+    if sort is not None:
+        sort_filter = f"ORDER BY {sort} {order}"
+    else:
+        sort_filter = ""
+
+    if filter is not None:
+        filter = json.loads(filter)
+        filters = []
+        for field in filter.keys():
+            filters.append(f"{field} LIKE '%{filter[field]}%'")
+        ors = " OR ".join(filters)
+        filter_filter = f"WHERE {ors}"
+    else:
+        filter_filter = ""
+
     results = sqlite_queries(
         queries={
             "report": """
@@ -82,15 +106,38 @@ def get_inventory():
                             resourceConfig
                         FROM
                             :db_table AS dm
-                        LIMIT 10000
+                        :filter
+                        :sort
+                        :limit
+                        """.replace(
+                ":sort", sort_filter
+            )
+            .replace(":limit", limit_filter)
+            .replace(":filter", filter_filter),
+            "total_filtered": """
+                        SELECT 
+                            count(*) as count
+                        FROM
+                            :db_table AS dm
+                        :filter
+                        """.replace(
+                ":filter", filter_filter
+            ),
+            "total": """
+                        SELECT 
+                            count(*) as count
+                        FROM
+                            :db_table AS dm
                         """,
         },
         db_table="inventory",
         custom_columns=None,
         db_connection=db_connection,
     )
-    logging.info(results)
+    # logging.info(results)
     # results = [{"id": 1, "test": "value"}]
+    if download == "csv":
+        return results["report"]
 
     return [
         {
@@ -98,7 +145,8 @@ def get_inventory():
             "summary": {
                 "reportTitle": "Inventory Coverage",
                 "description": "The Inventory Coverage Report displays a list of all Lacework Inventory.",
-                "rows": len(results["report"]),
+                "rows": results["total"][0]["count"],
+                "rows_filtered": results["total_filtered"][0]["count"],
             },
             "report": results["report"],
         }
@@ -110,6 +158,37 @@ def home():
     template = env.get_template("inventory.html.j2")
 
     return template.render(datasets=get_inventory())
+
+
+@app.route("/inventory", methods=["GET"])
+def inventory():
+    template = env.get_template("inventory2.html.j2")
+
+    return template.render(datasets=get_inventory(limit=100))
+
+
+@app.route("/data/inventory", methods=["GET", "POST"])
+def data_inventory():
+    logging.info(f"request: {request.json}")
+    offset = request.json.get("offset", 0)
+    limit = request.json.get("limit", 0)
+    sort = request.json.get("sort", None)
+    order = request.json.get("order", None)
+    filter = request.json.get("filter", None)
+    download = request.json.get("download", None)
+    result = get_inventory(
+        offset=offset,
+        limit=limit,
+        sort=sort,
+        order=order,
+        filter=filter,
+        download=download,
+    )
+
+    if download == "csv":
+        return pd.DataFrame(result).to_csv(index=False)
+
+    return jsonify(result)
 
 
 if __name__ == "__main__":

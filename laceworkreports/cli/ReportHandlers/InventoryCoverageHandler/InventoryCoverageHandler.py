@@ -269,11 +269,12 @@ def html(
             tag_columns.append(
                 """
                 (SELECT
-                    json_extract(value, '$.Value')
+                    value
                 FROM
                     json_each(resourceTags, '$' )
                 where
-                    json_valid(value) AND json_extract(value, '$.Key') = ':tag'
+                    json_valid(resourceTags)
+                    AND key LIKE ':tag'
                 LIMIT 1) AS ':tag'
                 """.replace(
                     ":tag", tag
@@ -565,11 +566,12 @@ def csv_handler(
             tag_columns.append(
                 """
                 (SELECT
-                    json_extract(value, '$.Value')
+                    value
                 FROM
                     json_each(resourceTags, '$' )
                 where
-                    json_valid(value) AND json_extract(value, '$.Key') = ':tag'
+                    json_valid(resourceTags)
+                    AND key LIKE ':tag'
                 LIMIT 1) AS ':tag'
                 """.replace(
                     ":tag", tag
