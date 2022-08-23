@@ -13,7 +13,7 @@ idna==3.3; python_version >= "3.7" and python_version < "4"
 importlib-metadata==4.12.0; python_version >= "3.7"
 jinja2==3.1.2; python_version >= "3.7"
 kiwisolver==1.4.4; python_version >= "3.7"
-laceworksdk==1.4.0
+laceworksdk==1.5.0
 markupsafe==2.1.1; python_version >= "3.7"
 matplotlib==3.5.3; python_version >= "3.7"
 networkx==2.8.5; python_version >= "3.8"
