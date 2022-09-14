@@ -31,7 +31,7 @@ laceworkreports export vulnerabilities containers csv --file-path out.csv --filt
 ### Export jinja2 container vulnerabilities with filters, returns, and field_map
 
 ```bash
-laceworkreports export vulnerabilities containers jinja --file-path out.csv --filters="@examples/filters/critical_vulnerable_containers.json" --returns="@examples/returns/container_short.json" --field-map="@examples/field_map/containers_vulnerabilities.json" --template-path="@examples/jinja2/advanced_bootstrap.html.js"
+laceworkreports export vulnerabilities containers jinja --file-path out.html --filters="@examples/filters/critical_vulnerable_containers.json" --returns="@examples/returns/container_short.json" --field-map="@examples/field_map/containers_vulnerabilities.json" --template-path="./examples/jinja2/html/advanced_bootstrap.html.j2"
 ```
 
 ## SDK
