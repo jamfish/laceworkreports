@@ -1621,7 +1621,7 @@ class ReportHelper:
             elif organizationId != "*" and projectId != "*":
                 filter = f"""
                                 AND ORGANIZATION_ID = {organizationId}
-                                AND CONTAINS(m.URN, '://compute.googleapis.com/projects/{projectId}/')
+                                AND CONTAINS(m.URN, '//compute.googleapis.com/projects/{projectId}/')
                             """
             # filter only organization
             elif organizationId != "*" and projectId == "*":
@@ -1631,7 +1631,7 @@ class ReportHelper:
             # filter only project
             elif organizationId == "*" and projectId != "*":
                 filter = f"""
-                                AND CONTAINS(m.URN, '://compute.googleapis.com/projects/{projectId}/')
+                                AND CONTAINS(m.URN, '//compute.googleapis.com/projects/{projectId}/')
                             """
 
             lql_query = f"""
@@ -1857,7 +1857,7 @@ class ReportHelper:
                             elif organizationId != "*" and projectId != "*":
                                 filter = f"""
                                                 AND ORGANIZATION_ID = {organizationId}
-                                                AND CONTAINS(m.URN, '://compute.googleapis.com/projects/{projectId}/')
+                                                AND CONTAINS(m.URN, '//compute.googleapis.com/projects/{projectId}/')
                                             """
                             # filter only organization
                             elif organizationId != "*" and projectId == "*":
@@ -1867,7 +1867,7 @@ class ReportHelper:
                             # filter only project
                             elif organizationId == "*" and projectId != "*":
                                 filter = f"""
-                                                AND CONTAINS(m.URN, '://compute.googleapis.com/projects/{projectId}/')
+                                                AND CONTAINS(m.URN, '//compute.googleapis.com/projects/{projectId}/')
                                             """
 
                             lql_query = f"""
