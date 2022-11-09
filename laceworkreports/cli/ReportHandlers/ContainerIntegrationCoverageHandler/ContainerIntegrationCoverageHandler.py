@@ -14,7 +14,7 @@ from laceworkreports import common
 from laceworkreports.sdk.DataHandlers import DataHandlerTypes, ExportHandler
 from laceworkreports.sdk.ReportHelpers import ContainerIntegrationQueries, ReportHelper
 
-app = typer.Typer(no_args_is_help=True)
+app: typer.Typer = typer.Typer(no_args_is_help=True)
 
 
 @app.command(no_args_is_help=True, help="Generate HTML report")

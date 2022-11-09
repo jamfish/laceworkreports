@@ -1,4 +1,7 @@
+from typing import List, TypedDict
+
 import typer
+from typer import Typer
 
 from laceworkreports import common
 
@@ -9,9 +12,15 @@ from .EntitiesHandler import Entities
 from .QueriesHandler import Queries
 from .VulnerabilitiesHandler import Vulnerabilities
 
-app = typer.Typer(no_args_is_help=True)
+app: Typer = Typer(no_args_is_help=True)
 
-commands = [
+
+class Command(TypedDict):
+    command_name: str
+    command_type: Typer
+
+
+commands: list[Command] = [
     {"command_name": "activities", "command_type": Activities.app},
     {"command_name": "alerts", "command_type": GenericAPIv2Handler.app},
     {"command_name": "configs", "command_type": Configs.app},

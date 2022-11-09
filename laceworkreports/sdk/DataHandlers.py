@@ -189,7 +189,7 @@ class DataHandler:
             self.path = Path(self.file_path)
 
             # check if we append to existing file or remove
-            if Path(self.file_path).exists and not self.append:
+            if self.append == False and Path(self.file_path).exists() == True:
                 logging.info(f"Removing existing file - append={self.append}")
                 self.path.unlink(missing_ok=True)
 
@@ -204,7 +204,7 @@ class DataHandler:
             self.path = Path(self.file_path)
 
             # check if we append to existing file or remove
-            if Path(self.file_path).exists and not self.append:
+            if self.append == False and Path(self.file_path).exists() == True:
                 logging.info(f"Removing existing file - append={self.append}")
                 self.path.unlink(missing_ok=True)
 

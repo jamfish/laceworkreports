@@ -11,12 +11,12 @@ from pathlib import Path
 import typer
 
 from laceworkreports import common
-from laceworkreports.sdk.DataHandlers import DataHandlerCliTypes
+from laceworkreports.sdk.DataHandlers import DataHandlerCliTypes, DataHandlerTypes
 
 from .GenericExport import export
 from .OptionValidator import update_config, validate
 
-app = typer.Typer(no_args_is_help=True)
+app: typer.Typer = typer.Typer(no_args_is_help=True)
 
 
 @app.command(no_args_is_help=True, help="Export to csv")
@@ -67,7 +67,7 @@ def csv(
     common.config.ACTION = str(ctx.command_path.split(" ")[-4]).replace("-", "_")
     common.config.TYPE = str(ctx.command_path.split(" ")[-3]).replace("-", "_")
     common.config.OBJECT = str(ctx.command_path.split(" ")[-2]).replace("-", "_")
-    common.config.format = DataHandlerCliTypes.CSV
+    common.config.format = DataHandlerTypes.CSV
 
     options = validate(
         start_time=start_time,
@@ -132,7 +132,7 @@ def json_type(
     common.config.ACTION = str(ctx.command_path.split(" ")[-4]).replace("-", "_")
     common.config.TYPE = str(ctx.command_path.split(" ")[-3]).replace("-", "_")
     common.config.OBJECT = str(ctx.command_path.split(" ")[-2]).replace("-", "_")
-    common.config.format = DataHandlerCliTypes.JSON
+    common.config.format = DataHandlerTypes.JSON
 
     options = validate(
         start_time=start_time,
@@ -209,7 +209,7 @@ def postgres(
     common.config.ACTION = str(ctx.command_path.split(" ")[-4]).replace("-", "_")
     common.config.TYPE = str(ctx.command_path.split(" ")[-3]).replace("-", "_")
     common.config.OBJECT = str(ctx.command_path.split(" ")[-2]).replace("-", "_")
-    common.config.format = DataHandlerCliTypes.POSTGRES
+    common.config.format = DataHandlerTypes.POSTGRES
 
     options = validate(
         start_time=start_time,
@@ -283,7 +283,7 @@ def jinja2(
     common.config.ACTION = str(ctx.command_path.split(" ")[-4]).replace("-", "_")
     common.config.TYPE = str(ctx.command_path.split(" ")[-3]).replace("-", "_")
     common.config.OBJECT = str(ctx.command_path.split(" ")[-2]).replace("-", "_")
-    common.config.format = DataHandlerCliTypes.JINJA2
+    common.config.format = DataHandlerTypes.JINJA2
 
     # handle argument defaults
     if not start_time:

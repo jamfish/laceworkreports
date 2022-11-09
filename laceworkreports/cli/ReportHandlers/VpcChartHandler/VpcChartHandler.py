@@ -18,7 +18,7 @@ from laceworkreports.sdk.DataHandlers import (
 
 from .VpcChartHelper import build_target_vpc_output
 
-app = typer.Typer(no_args_is_help=True)
+app: typer.Typer = typer.Typer(no_args_is_help=True)
 
 
 @app.command(no_args_is_help=True, help="Generate VPC Report PNG and Associated CSV")

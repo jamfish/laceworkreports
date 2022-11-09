@@ -1,7 +1,7 @@
 """Example of code."""
 import typer
 
-app = typer.Typer()
+app: typer.Typer = typer.Typer()
 
 
 def hello(name: str) -> str:

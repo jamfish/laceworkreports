@@ -2,15 +2,17 @@
 CLI Main
 """
 from types import SimpleNamespace
+from typing import List, TypedDict
 
 import typer
 from rich.console import Console
+from typer import Typer
 
 from laceworkreports import common, version
 from laceworkreports.cli.ExportHandlers import Export
 from laceworkreports.cli.ReportHandlers import Report
 
-app = typer.Typer(
+app: Typer = Typer(
     name=common.config.name,
     help=f"{common.config.name} is a Python cli/package for exporting and creating reports from Lacework data.",
     add_completion=True,
@@ -21,16 +23,20 @@ app = typer.Typer(
 parent_command = common.config.name
 self_command = common.ActionTypes.Export.value
 
-commands = [
+
+class Command(TypedDict):
+    command_name: str
+    command_type: Typer
+
+
+commands: list[Command] = [
     {
         "command_name": "export",
         "command_type": Export.app,
-        "epilog": f"{common.config.name} export <type> <subtype> <exporttype> [OPTIONS]",
     },
     {
         "command_name": "report",
         "command_type": Report.app,
-        "epilog": f"{common.config.name} report <type> <format> [OPTIONS]",
     },
 ]
 
@@ -40,7 +46,7 @@ for command in iter(commands):
         name=command["command_name"],
         help=f"{command['command_name'].capitalize()} lacework events",
         no_args_is_help=True,
-        epilog=command["epilog"],
+        epilog=f"{common.config.name} {command['command_name']} <type> <subtype> <exporttype> [OPTIONS]",
     )
 
 console = Console()

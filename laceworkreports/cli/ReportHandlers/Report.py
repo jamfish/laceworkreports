@@ -1,4 +1,7 @@
+from typing import List, TypedDict
+
 import typer
+from typer import Typer
 
 from laceworkreports import common
 
@@ -10,10 +13,19 @@ from .InventoryCoverageHandler import InventoryCoverageHandler
 from .VpcChartHandler import VpcChartHandler
 from .VulnerabilityCoverageHandler import VulnerabilityCoverageHandler
 
-app = typer.Typer(no_args_is_help=True)
+app: Typer = Typer(no_args_is_help=True)
 
-commands = [
-    {"command_name": "agent-coverage", "command_type": AgentCoverageHandler.app},
+
+class Command(TypedDict):
+    command_name: str
+    command_type: Typer
+
+
+commands: list[Command] = [
+    {
+        "command_name": "agent-coverage",
+        "command_type": AgentCoverageHandler.app,
+    },
     {
         "command_name": "compliance-coverage",
         "command_type": ComplianceCoverageHandler.app,
@@ -40,14 +52,16 @@ commands = [
     },
 ]
 
+
 for command in commands:
     app.add_typer(
         command["command_type"],
         name=command["command_name"],
         help=f"Generate {command['command_name']} report",
         no_args_is_help=True,
-        epilog=f"{common.config.name} export {command['command_name']} <exporttype> [OPTIONS]",
+        epilog=f"{common.config.name} {command['command_name']} agent-coverage <exporttype> [OPTIONS]",
     )
+
 
 if __name__ == "__main__":
     app()
